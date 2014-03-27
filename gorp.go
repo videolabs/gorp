@@ -204,8 +204,11 @@ type TableMap struct {
 	version        *ColumnMap
 	insertPlan     bindPlan
 	updatePlan     bindPlan
+	updatePlanMut  sync.Mutex
 	deletePlan     bindPlan
+	deletePlanMut  sync.Mutex
 	getPlan        bindPlan
+	getPlanMut  sync.Mutex
 	dbmap          *DbMap
 }
 
@@ -425,6 +428,8 @@ func (t *TableMap) bindInsert(elem reflect.Value) (bindInstance, error) {
 }
 
 func (t *TableMap) bindUpdate(elem reflect.Value) (bindInstance, error) {
+	t.updatePlanMut.Lock()
+	defer t.updatePlanMut.Unlock()
 	plan := t.updatePlan
 	if plan.query == "" {
 
@@ -483,6 +488,8 @@ func (t *TableMap) bindUpdate(elem reflect.Value) (bindInstance, error) {
 }
 
 func (t *TableMap) bindDelete(elem reflect.Value) (bindInstance, error) {
+	t.deletePlanMut.Lock()
+	defer t.deletePlanMut.Unlock()
 	plan := t.deletePlan
 	if plan.query == "" {
 
@@ -529,6 +536,8 @@ func (t *TableMap) bindDelete(elem reflect.Value) (bindInstance, error) {
 }
 
 func (t *TableMap) bindGet() bindPlan {
+		t.getPlanMut.Lock()
+	defer t.getPlanMut.Unlock()
 	plan := t.getPlan
 	if plan.query == "" {
 
