@@ -203,6 +203,7 @@ type TableMap struct {
 	uniqueTogether [][]string
 	version        *ColumnMap
 	insertPlan     bindPlan
+	insertPlanMut  sync.Mutex
 	updatePlan     bindPlan
 	updatePlanMut  sync.Mutex
 	deletePlan     bindPlan
@@ -370,6 +371,9 @@ type bindInstance struct {
 }
 
 func (t *TableMap) bindInsert(elem reflect.Value) (bindInstance, error) {
+	t.insertPlanMut.Lock()
+	defer t.insertPlanMut.Unlock()
+
 	plan := t.insertPlan
 	if plan.query == "" {
 		plan.autoIncrIdx = -1
